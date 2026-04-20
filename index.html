@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rinty Stock & Finanzas</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="login-screen" class="screen active">
+        <form id="login-form" class="card login-card">
+            <h2 class="text-center text-primary">Inicia Sesión</h2>
+            <input type="email" id="email" placeholder="Usuario (Email)" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit" id="btn-login" class="btn-primary">Ingresar</button>
+        </form>
+    </div>
+
+    <div id="app-screen" class="screen">
+        <div class="app-layout">
+            
+            <aside class="sidebar">
+                <h2 class="logo text-primary">Rinty Stock</h2>
+                <nav class="nav-links">
+                    <button onclick="showTab('stock')" class="nav-btn">📦 Inventario</button>
+                    <button onclick="showTab('categorias')" class="nav-btn">🏷️ Categorías</button>
+                    <button onclick="showTab('ventas')" class="nav-btn">🛒 Nueva Venta</button>
+                    <button onclick="showTab('historial-ventas')" class="nav-btn">🧾 Historial Ventas</button>
+                    <button onclick="showTab('finanzas')" class="nav-btn">📊 Finanzas</button>
+                    <button onclick="logout()" class="nav-btn btn-danger-outline">🚪 Salir</button>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                
+                <section id="tab-stock" class="tab-content active">
+                    <div class="card fade-in">
+                        <h3 class="text-primary">Agregar Nueva Prenda</h3>
+                        <form id="add-item-form" class="grid-form">
+                            <select id="item-cat" required>
+                                <option value="">Cargando categorías...</option>
+                            </select>
+                            
+                            <select id="item-talle" required>
+                                <option value="">Talle...</option>
+                                <option value="Unico">Único</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                            </select>
+
+                            <input type="text" id="item-color-detalle" placeholder="Color/Detalle (Ej: Toxic marrón)">
+                            
+                            <input type="number" id="item-efectivo" placeholder="Precio Efectivo" required>
+                            <input type="number" id="item-tarjeta" placeholder="Precio Tarjeta" required>
+                            
+                            <div class="input-group">
+                                <label style="font-size: 0.8rem; color: var(--text-muted);">Cantidad a cargar:</label>
+                                <input type="number" id="item-cantidad" value="1" min="1" required>
+                            </div>
+                            <button type="submit" id="btn-add-item" class="btn-primary">Agregar al Stock</button>
+                        </form>
+                    </div>
+
+                    <div class="card fade-in">
+                        <h3 class="text-primary">Planilla de Stock</h3>
+                        <div class="filters">
+                            <input type="text" id="filter-codigo" placeholder="🔍 Código" onkeyup="renderTable()">
+                            <select id="filter-cat" onchange="renderTable()"></select>
+                            <select id="filter-estado" onchange="renderTable()">
+                                <option value="">Todos los Estados</option>
+                                <option value="stock">En Stock</option>
+                                <option value="vendido">Vendido</option>
+                            </select>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Categoría</th>
+                                        <th>Talle</th>
+                                        <th>Color/Detalle</th>
+                                        <th>Efectivo</th>
+                                        <th>Tarjeta</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tab-categorias" class="tab-content">
+                    <div class="card fade-in">
+                        <h3 class="text-primary">Gestionar Categorías</h3>
+                        <form id="add-cat-form" class="grid-form">
+                            <input type="text" id="cat-nombre" placeholder="Nombre (Ej: Remera)" required>
+                            <input type="text" id="cat-prefijo" placeholder="Prefijo (Ej: R)" maxlength="2" required>
+                            <button type="submit" id="btn-add-cat" class="btn-primary">Crear</button>
+                        </form>
+                        <div class="table-responsive mt-20">
+                            <table>
+                                <thead>
+                                    <tr><th>Nombre</th><th>Prefijo</th><th>Acciones</th></tr>
+                                </thead>
+                                <tbody id="categorias-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tab-ventas" class="tab-content">
+                    <div class="card fade-in">
+                        <h3 class="text-primary">Registrar Nueva Venta</h3>
+                        <div class="grid-form mb-20">
+                            <input type="date" id="venta-fecha" required>
+                            <input type="text" id="venta-telefono" placeholder="Teléfono Cliente">
+                        </div>
+                        <div class="carrito-agregar grid-form mb-20">
+                            <select id="sell-item">
+                                <option value="">Seleccione prenda...</option>
+                            </select>
+                            <button type="button" onclick="addToCart()" class="btn-primary">Añadir</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr><th>Código</th><th>Detalle</th><th>Sugerido</th><th>Precio Final</th><th></th></tr>
+                                </thead>
+                                <tbody id="cart-body"></tbody>
+                            </table>
+                        </div>
+                        <form id="checkout-form" class="checkout-section mt-20">
+                            <div class="checkout-controls">
+                                <select id="sell-method" required>
+                                    <option value="">Método de pago</option>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Tarjeta">Tarjeta</option>
+                                </select>
+                                <h3 class="text-success">Total: $<span id="cart-total">0</span></h3>
+                            </div>
+                            <button type="submit" id="btn-checkout" class="btn-success w-100 mt-10">Confirmar Venta</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="tab-historial-ventas" class="tab-content">
+                    <div class="card fade-in">
+                        <h3 class="text-primary">Historial de Facturas y Cambios</h3>
+                        <div class="table-responsive mt-20">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Factura</th>
+                                        <th>Fecha</th>
+                                        <th>Teléfono</th>
+                                        <th>Artículos (Click en 🔄 para devolver a stock)</th>
+                                        <th>Total Final</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facturas-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tab-finanzas" class="tab-content">
+                    <div class="card fade-in">
+                        <div class="finanzas-header">
+                            <h3>Resumen Financiero</h3>
+                            <input type="month" id="finanzas-mes" onchange="renderCharts()" class="month-selector">
+                        </div>
+                        <h2 id="total-ingresos" class="text-success text-center big-total">$0</h2>
+                        <div class="charts-container">
+                            <div class="chart-box"><h4>Por Categoría</h4><canvas id="chartCategorias"></canvas></div>
+                            <div class="chart-box"><h4>Por Método</h4><canvas id="chartMetodos"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content card">
+            <h3 class="text-primary">Editar <span id="edit-codigo-display"></span></h3>
+            <form id="edit-form" class="grid-form-vertical">
+                <input type="hidden" id="edit-id">
+                <label>Categoría:</label><select id="edit-cat" required></select>
+                <label>Talle:</label>
+                <select id="edit-talle" required>
+                    <option value="Unico">Único</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                </select>
+                <label>Color/Detalle:</label><input type="text" id="edit-color-detalle">
+                <label>Efectivo:</label><input type="number" id="edit-efectivo" required>
+                <label>Tarjeta:</label><input type="number" id="edit-tarjeta" required>
+                <label>Estado:</label>
+                <select id="edit-estado" required>
+                    <option value="stock">En Stock</option>
+                    <option value="vendido">Vendido</option>
+                </select>
+                <div class="modal-actions">
+                    <button type="submit" id="btn-save-edit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-danger-outline" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinty Stock & Finanzas</title>
+    <title>Rinty Stock y Finanzas</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,43 +27,45 @@
             <aside class="sidebar">
                 <h2 class="logo text-primary">Rinty Stock</h2>
                 <nav class="nav-links">
-                    <button onclick="showTab('stock')" class="nav-btn">📦 Inventario</button>
-                    <button onclick="showTab('categorias')" class="nav-btn">🏷️ Categorías</button>
-                    <button onclick="showTab('ventas')" class="nav-btn">🛒 Nueva Venta</button>
-                    <button onclick="showTab('historial-ventas')" class="nav-btn">🧾 Historial Ventas</button>
-                    <button onclick="showTab('finanzas')" class="nav-btn">📊 Finanzas</button>
-                    <button onclick="logout()" class="nav-btn btn-danger-outline">🚪 Salir</button>
+                    <button onclick="showTab('stock')" class="nav-btn">Inventario</button>
+                    <button onclick="showTab('categorias')" class="nav-btn">Categorías</button>
+                    <button onclick="showTab('ventas')" class="nav-btn">Nueva Venta</button>
+                    <button onclick="showTab('historial-ventas')" class="nav-btn">Historial Ventas</button>
+                    <button onclick="showTab('finanzas')" class="nav-btn admin-only">Finanzas</button>
+                    <button onclick="logout()" class="nav-btn btn-danger-outline">Salir</button>
                 </nav>
             </aside>
 
             <main class="main-content">
                 
                 <section id="tab-stock" class="tab-content active">
+                    
+                    <div class="summary-cards admin-flex mb-20" style="display: none;" id="tarjeta-costo-stock">
+                        <div class="summary-card">
+                            <h5>Total Costo Stock</h5>
+                            <h2 id="stock-total-costo" class="text-warning">$0</h2>
+                        </div>
+                    </div>
+
                     <div class="card fade-in">
                         <h3 class="text-primary">Agregar Nueva Prenda</h3>
                         <form id="add-item-form" class="grid-form">
-                            <select id="item-cat" required>
-                                <option value="">Cargando categorías...</option>
-                            </select>
-                            
+                            <select id="item-cat" required><option value="">Cargando...</option></select>
                             <select id="item-talle" required>
                                 <option value="">Talle...</option>
                                 <option value="Unico">Único</option>
-                                <option value="XS">XS</option>
-                                <option value="S">S</option>
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
-                                <option value="XXL">XXL</option>
+                                <option value="XS">XS</option><option value="S">S</option><option value="M">M</option>
+                                <option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
+                                <option value="34">34</option><option value="36">36</option><option value="38">38</option>
+                                <option value="40">40</option><option value="42">42</option><option value="44">44</option>
+                                <option value="46">46</option><option value="48">48</option>
                             </select>
-
-                            <input type="text" id="item-color-detalle" placeholder="Color/Detalle (Ej: Toxic marrón)">
-                            
+                            <input type="text" id="item-color-detalle" placeholder="Color/Detalle">
+                            <input type="number" id="item-costo" class="admin-only" placeholder="Costo de prenda">
                             <input type="number" id="item-efectivo" placeholder="Precio Efectivo" required>
                             <input type="number" id="item-tarjeta" placeholder="Precio Tarjeta" required>
-                            
                             <div class="input-group">
-                                <label style="font-size: 0.8rem; color: var(--text-muted);">Cantidad a cargar:</label>
+                                <label style="font-size: 0.8rem; color: var(--text-muted);">Cantidad:</label>
                                 <input type="number" id="item-cantidad" value="1" min="1" required>
                             </div>
                             <button type="submit" id="btn-add-item" class="btn-primary">Agregar al Stock</button>
@@ -73,9 +75,9 @@
                     <div class="card fade-in">
                         <h3 class="text-primary">Planilla de Stock</h3>
                         <div class="filters">
-                            <input type="text" id="filter-codigo" placeholder="🔍 Código" onkeyup="renderTable()">
-                            <select id="filter-cat" onchange="renderTable()"></select>
-                            <select id="filter-estado" onchange="renderTable()">
+                            <input type="text" id="filter-codigo" placeholder="Buscar Código" onkeyup="paginaActual=1; renderTable()">
+                            <select id="filter-cat" onchange="paginaActual=1; renderTable()"></select>
+                            <select id="filter-estado" onchange="paginaActual=1; renderTable()">
                                 <option value="">Todos los Estados</option>
                                 <option value="stock">En Stock</option>
                                 <option value="vendido">Vendido</option>
@@ -84,19 +86,15 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Categoría</th>
-                                        <th>Talle</th>
-                                        <th>Color/Detalle</th>
-                                        <th>Efectivo</th>
-                                        <th>Tarjeta</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
+                                    <tr><th>Código</th><th>Categoría</th><th>Talle</th><th>Detalle</th><th class="admin-cell">Costo</th><th>Efe</th><th>Tarj</th><th>Estado</th><th>Acciones</th></tr>
                                 </thead>
                                 <tbody id="table-body"></tbody>
                             </table>
+                        </div>
+                        <div class="pagination-controls mt-20" style="display: flex; gap: 15px; align-items: center; justify-content: center;">
+                            <button onclick="cambiarPagina(-1)" class="btn-primary" style="padding: 6px 12px;">Anterior</button>
+                            <span id="page-indicator" style="color: var(--text-muted); font-size: 0.9rem;">Página 1</span>
+                            <button onclick="cambiarPagina(1)" class="btn-primary" style="padding: 6px 12px;">Siguiente</button>
                         </div>
                     </div>
                 </section>
@@ -111,9 +109,7 @@
                         </form>
                         <div class="table-responsive mt-20">
                             <table>
-                                <thead>
-                                    <tr><th>Nombre</th><th>Prefijo</th><th>Acciones</th></tr>
-                                </thead>
+                                <thead><tr><th>Nombre</th><th>Prefijo</th><th>Acciones</th></tr></thead>
                                 <tbody id="categorias-body"></tbody>
                             </table>
                         </div>
@@ -127,28 +123,33 @@
                             <input type="date" id="venta-fecha" required>
                             <input type="text" id="venta-telefono" placeholder="Teléfono Cliente">
                         </div>
-                        <div class="carrito-agregar grid-form mb-20">
-                            <select id="sell-item">
-                                <option value="">Seleccione prenda...</option>
-                            </select>
+                        <div class="carrito-agregar grid-form-sale mb-20">
+                            <input type="text" id="filter-sell-item" placeholder="Buscar código..." onkeyup="updateSaleSelect()">
+                            <select id="sell-item"><option value="">Seleccione prenda...</option></select>
                             <button type="button" onclick="addToCart()" class="btn-primary">Añadir</button>
                         </div>
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Código</th><th>Detalle</th><th>Sugerido</th><th>Precio Final</th><th></th></tr>
-                                </thead>
+                                <thead><tr><th>Código</th><th>Detalle</th><th>P. Efe</th><th>P. Tarj</th><th>Final</th><th>Acción</th></tr></thead>
                                 <tbody id="cart-body"></tbody>
                             </table>
                         </div>
                         <form id="checkout-form" class="checkout-section mt-20">
-                            <div class="checkout-controls">
-                                <select id="sell-method" required>
-                                    <option value="">Método de pago</option>
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Transferencia">Transferencia</option>
-                                    <option value="Tarjeta">Tarjeta</option>
-                                </select>
+                            <div class="grid-pagos mt-20">
+                                <div class="input-group">
+                                    <label style="font-size: 0.8rem; color: var(--text-muted);">Monto Efectivo</label>
+                                    <input type="number" id="pay-efe" value="0" min="0">
+                                </div>
+                                <div class="input-group">
+                                    <label style="font-size: 0.8rem; color: var(--text-muted);">Monto Tarjeta</label>
+                                    <input type="number" id="pay-tar" value="0" min="0">
+                                </div>
+                                <div class="input-group">
+                                    <label style="font-size: 0.8rem; color: var(--text-muted);">Monto Transferencia</label>
+                                    <input type="number" id="pay-tra" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="checkout-controls mt-20">
                                 <h3 class="text-success">Total: $<span id="cart-total">0</span></h3>
                             </div>
                             <button type="submit" id="btn-checkout" class="btn-success w-100 mt-10">Confirmar Venta</button>
@@ -158,34 +159,64 @@
 
                 <section id="tab-historial-ventas" class="tab-content">
                     <div class="card fade-in">
-                        <h3 class="text-primary">Historial de Facturas y Cambios</h3>
+                        <h3 class="text-primary">Historial de Facturas</h3>
+                        <div class="filters mb-20">
+                            <input type="text" id="filter-hist-factura" placeholder="Nº Factura" onkeyup="renderHistory()">
+                            <input type="text" id="filter-hist-tel" placeholder="Teléfono" onkeyup="renderHistory()">
+                            <input type="date" id="filter-hist-fecha" title="Filtrar por fecha exacta" onchange="renderHistory()">
+                        </div>
                         <div class="table-responsive mt-20">
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>Factura</th>
-                                        <th>Fecha</th>
-                                        <th>Teléfono</th>
-                                        <th>Artículos (Click en 🔄 para devolver a stock)</th>
-                                        <th>Total Final</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Factura</th><th>Fecha</th><th>Tel</th><th>Artículos</th><th>Total</th></tr></thead>
                                 <tbody id="facturas-body"></tbody>
                             </table>
                         </div>
                     </div>
                 </section>
 
-                <section id="tab-finanzas" class="tab-content">
+                <section id="tab-finanzas" class="tab-content admin-only">
                     <div class="card fade-in">
                         <div class="finanzas-header">
                             <h3>Resumen Financiero</h3>
-                            <input type="month" id="finanzas-mes" onchange="renderCharts()" class="month-selector">
+                            <div class="selectors-group">
+                                <select id="finanzas-mes-select" onchange="renderCharts()"></select>
+                                <select id="finanzas-anio-select" onchange="renderCharts()"></select>
+                            </div>
                         </div>
-                        <h2 id="total-ingresos" class="text-success text-center big-total">$0</h2>
+                        <div class="summary-cards">
+                            <div class="summary-card"><h5>Total Facturado</h5><h2 id="finanzas-total-facturado" class="text-primary">$0</h2></div>
+                            <div class="summary-card"><h5>Costo Vendido</h5><h2 id="finanzas-costo-vendido" class="text-warning">$0</h2></div>
+                            <div class="summary-card"><h5>Ganancia Neta</h5><h2 id="finanzas-ganancia-neta" class="text-success">$0</h2></div>
+                        </div>
+
+                        <div class="card mt-20" style="padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                            <h4 class="text-primary mb-10">Objetivo Mensual</h4>
+                            <div class="grid-form mb-10">
+                                <input type="number" id="finanzas-objetivo-input" placeholder="Establecer objetivo ($)">
+                                <button onclick="guardarObjetivo()" class="btn-primary">Guardar Objetivo</button>
+                            </div>
+                            <div class="progress-container">
+                                <div id="finanzas-progress-bar" class="progress-bar"></div>
+                            </div>
+                            <div class="text-center mt-10">
+                                <small><strong id="finanzas-progreso-texto" class="text-success">0</strong>% alcanzado de $<span id="finanzas-objetivo-display">0</span></small>
+                            </div>
+                        </div>
+
                         <div class="charts-container">
                             <div class="chart-box"><h4>Por Categoría</h4><canvas id="chartCategorias"></canvas></div>
                             <div class="chart-box"><h4>Por Método</h4><canvas id="chartMetodos"></canvas></div>
+                        </div>
+                        <div class="card mt-20 consulta-diaria">
+                            <h4 class="text-primary mb-20">Consultar Venta por Día</h4>
+                            <div class="grid-form">
+                                <input type="date" id="consulta-fecha">
+                                <button onclick="consultarVentaDia()" class="btn-primary">Consultar</button>
+                                <div class="resultado-consulta">
+                                    <span>Total del día:</span>
+                                    <strong id="total-consulta" class="text-success">$0</strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -199,29 +230,47 @@
             <form id="edit-form" class="grid-form-vertical">
                 <input type="hidden" id="edit-id">
                 <label>Categoría:</label><select id="edit-cat" required></select>
-                <label>Talle:</label>
-                <select id="edit-talle" required>
-                    <option value="Unico">Único</option>
-                    <option value="XS">XS</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-                    <option value="XXL">XXL</option>
+                <label>Talle:</label><select id="edit-talle" required>
+                    <option value="Unico">Único</option><option value="XS">XS</option><option value="S">S</option>
+                    <option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
+                    <option value="34">34</option><option value="36">36</option><option value="38">38</option>
+                    <option value="40">40</option><option value="42">42</option><option value="44">44</option>
+                    <option value="46">46</option><option value="48">48</option>
                 </select>
                 <label>Color/Detalle:</label><input type="text" id="edit-color-detalle">
+                <label class="admin-only" style="display: none;">Costo:</label>
+                <input type="number" id="edit-costo" class="admin-only" style="display: none;">
                 <label>Efectivo:</label><input type="number" id="edit-efectivo" required>
                 <label>Tarjeta:</label><input type="number" id="edit-tarjeta" required>
-                <label>Estado:</label>
-                <select id="edit-estado" required>
-                    <option value="stock">En Stock</option>
-                    <option value="vendido">Vendido</option>
-                </select>
-                <div class="modal-actions">
-                    <button type="submit" id="btn-save-edit" class="btn-primary">Guardar</button>
+                <label>Estado:</label><select id="edit-estado" required><option value="stock">Stock</option><option value="vendido">Vendido</option></select>
+                <div class="modal-actions mt-20">
+                    <button type="submit" class="btn-primary">Guardar</button>
                     <button type="button" class="btn-danger-outline" onclick="closeModal()">Cancelar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content card text-center">
+            <h3 class="text-warning mb-20">Ajuste de Caja por Devolución</h3>
+            <p>Devolviendo el artículo <strong><span id="ret-codigo"></span></strong>.</p>
+            <p class="mb-20">El cliente pagó por esto: <strong>$<span id="ret-valor"></span></strong></p>
+            
+            <p style="font-size:0.9rem" class="text-muted mb-10">¿De dónde vas a restar el dinero?</p>
+            <div class="grid-form-vertical mb-20" style="text-align: left;">
+                <label>Restar de Efectivo:</label>
+                <input type="number" id="ret-efe" value="0" min="0">
+                <label>Restar de Tarjeta:</label>
+                <input type="number" id="ret-tar" value="0" min="0">
+                <label>Restar de Transferencia:</label>
+                <input type="number" id="ret-tra" value="0" min="0">
+            </div>
+
+            <div class="modal-actions mt-20" style="justify-content: center;">
+                <button id="btn-confirm-yes" class="btn-warning">Confirmar Devolución Exacta</button>
+                <button type="button" class="btn-danger-outline" onclick="closeConfirmModal()">Cancelar</button>
+            </div>
         </div>
     </div>
 
